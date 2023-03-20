@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv'
 
 dotenv.config()
 const Nylas = require('nylas');
-Nylas.config({
+Nylas.config({                                         //configuration of nylas
   clientId: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
 });
@@ -18,19 +18,19 @@ export class AppService {
   
   constructor(){}
 
- async sendEmail(token) {
+  async sendEmail(options) {                            // sending email to specific user using nylas api
     try{
   
-        const nylas = await Nylas.with(token.accessToken);
+        const nylas = await Nylas.with(options.token);
         
         const draft = new Draft(nylas, {
-            subject: "With Love, from PCH1",
-            body: 'This email was sent using the Nylas email API.',
-            to: [{ email:token.emailAddress}]
+            subject: options.mailbody.subject,
+            body: options.mailbody.body,
+            to: [{ email:options.mailbody.to}]
          });
         
          draft.send().then(account => console.log("ok"));
-         
+         console.log("done")
          return({message:"Email is Send"})
     }
     catch(err)
@@ -40,16 +40,17 @@ export class AppService {
     }
 
   }
-  async getEmails(token){
+  async getEmails(options){                                 // getting emails to specific user using nylas api
     try{
     
-      const nylas = await Nylas.with(token.accessToken);
-      
-      const emails = await nylas.threads.list({ limit:5 });
+      const nylas = await Nylas.with(options.token);
+      const arr = []
+      const emails = await nylas.threads.list({ limit:options.limit });
       for (let email of emails) {
-        console.log(email.subject);
+        
+        arr.push(email.subject)
       }
-      return {message:"Received Emails"}
+      return {message:"Received Emails",arr}
       
     }
     catch(err){
@@ -59,15 +60,15 @@ export class AppService {
     
   }
 
- async saveDraft(token)
+ async saveDraft(options)                                       //email save into draft for specific user using nylas api
   {
   
-    const nylas = await Nylas.with(token.accessToken);
+    const nylas = await Nylas.with(options.token);
 
     const draft = new Draft(nylas, {
-          subject: "With Love, from PCH and Save in Draft",
-          body: "Hey there, I am saving this email draft using Nylas.",
-          to: [{ email: token.emailAddress }],
+          subject: options.mailbody.subject,
+          body: options.mailbody.body,
+          to: [{ email: options.mailbody.to }],
       });
 
     try{
